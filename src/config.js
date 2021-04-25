@@ -5,8 +5,6 @@ dotenv.config();
 
 const {
   PORT,
-  HOST,
-  HOST_URL,
   API_KEY,
   AUTH_DOMAIN,
   DATABASE_URL,
@@ -17,7 +15,6 @@ const {
 } = process.env;
 
 assert(PORT, "PORT is required");
-assert(HOST, "host is required");
 
 const config = {
   port: PORT,
