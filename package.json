@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "build": "babel src --out-dir dist",
+    "build": "babel src --out-dir public",
     "start": "node -r dotenv/config dist/app.js",
     "dev": "nodemon -r dotenv/config src/app.js --exec babel-node"
   },
