@@ -29,5 +29,5 @@ app.use(prefix, ingredientRoutes);
 
 const server = http.createServer(app)
 server.listen(config.port, () => {
-    console.log(`Server on port ${config.url}`)
+    console.log(`Server on port ${config.port}`)
 })
