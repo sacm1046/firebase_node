@@ -4,7 +4,7 @@ import assert from "assert";
 dotenv.config();
 
 const {
-    VERCEL_URL,
+  VERCEL_URL,
   API_KEY,
   AUTH_DOMAIN,
   DATABASE_URL,
