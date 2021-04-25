@@ -1,10 +1,10 @@
-import dotenv from "dotenv";
-import assert from "assert";
+const dotenv = require("dotenv");
+const assert = require("assert");
 
 dotenv.config();
 
 const {
-  VERCEL_URL,
+  PORT,
   API_KEY,
   AUTH_DOMAIN,
   DATABASE_URL,
@@ -16,8 +16,8 @@ const {
 
 assert(PORT, "PORT is required");
 
-const config = {
-  port: VERCEL_URL,
+module.exports = {
+  port: PORT,
   firebaseConfig: {
     apiKey: API_KEY,
     authDomain: AUTH_DOMAIN,
@@ -28,5 +28,3 @@ const config = {
     appId: APP_ID,
   },
 };
-
-export default config;

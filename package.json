@@ -2,36 +2,26 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir public",
-    "start": "node -r dotenv/config dist/app.js",
-    "dev": "nodemon -r dotenv/config src/app.js --exec babel-node"
+    "start:api": "NODE_ENV=production node -r dotenv/config index.js",
+    "dev:api": "nodemon -r dotenv/config index.js --exec babel-node"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/polyfill": "^7.12.1",
-    "@babel/runtime": "^7.13.17",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "ejs": "^3.1.6",
     "express": "^4.17.1",
     "firebase": "^8.4.2",
-    "fsevents": "^2.3.2",
     "helmet": "^4.5.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.13.16",
-    "@babel/core": "^7.13.16",
-    "@babel/node": "^7.13.13",
-    "@babel/plugin-transform-runtime": "^7.13.15",
-    "@babel/preset-env": "^7.13.15",
     "nodemon": "^2.0.7"
   }
 }
