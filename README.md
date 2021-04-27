@@ -26,11 +26,6 @@ npm i firebase
 ```bash
 npm i morgan
 ```
-##### Instalación de Babel, permite usar código moderno de JS en nodeJS.
-[https://babeljs.io/docs/en/usage]
-```bash
-npm i @babel/polyfill @babel/runtime
-```
 
 ##### Instalación de Helmet, permite configurar cabezeras http para mejorar la seguridad de la api. 
 ```bash
@@ -47,12 +42,6 @@ npm i compression
 npm i cors 
 ```
 
-##### Instalación de Ejs, permite trabajar con templates de html de fácil y rápida ejecución.
-[https://ejs.co/]
-```bash
-npm i ejs
-```
-
 ##### Instalación de Json Web Token, permite generar tokens de usuarios para consultar información de forma segura.
 ```bash
 npm i jsonwebtoken
@@ -65,29 +54,17 @@ npm i bcryptjs
 
 ##### Todos los Módulos principales
 ```bash
-npm i express firebase morgan @babel/polyfill @babel/runtime dotenv helmet compression cors ejs jsonwebtoken bcryptjs
+npm i express firebase morgan dotenv helmet compression cors jsonwebtoken bcryptjs
 ```
 
 ## Instalación de Módulos de Desarrollo
 
-##### Instalación de Babel, permite usar código moderno de JS en nodeJS
-[https://babeljs.io/docs/en/usage]
+##### Instalación de Nodemon, para que el servidor se reinicie automáticamente cada vez que modifiquemos el código
 ```bash
-npm i @babel/core @babel/cli @babel/preset-env @babel/node @babel/plugin-transform-runtime -D 
+npm i nodemon -D
 ```
-1. Crea archivo ".babelrc" en la carpeta raíz del proyecto
-2. Agrega el siguiente contenido:
-```json
-{
-    "presets": [
-        "@babel/preset-env"
-    ],
-    "plugins": [
-        ["@babel/transform-runtime"]
-    ]
-}
-```
-3. Reemplaza el comando "test" dentro del "scripts", del archivo "package.json":
+
+1. Reemplaza el comando "test" dentro del "scripts", del archivo "package.json":
 Esto:
 ```json
 "scripts": {
@@ -97,22 +74,12 @@ Esto:
 Por:
 ```json
 "scripts": {
-    //Utiliza babel para convertir el código de desarrollo a codigo de producción.
-    "build": "babel src --out-dir dist",
-    "start": "node -r dotenv/config dist/index.js"
+    "start:api": "NODE_ENV=production node -r dotenv/config index.js",
+    "dev:api": "nodemon -r dotenv/config index.js --exec"
 }
 ```
-##### Instalación de Nodemon, para que el servidor se reinicie automáticamente cada vez que modifiquemos el código
-```bash
-npm i nodemon -D
-```
-* Agrega el siguiente script dentro de "scripts" del archivo "package.json"
-```json
-"scripts": {
-    "dev": "nodemon -r dotenv/config src/index.js --exec babel-node",
-  }
-```
+
 ##### Todos los Módulos de Desarrollo
 ```bash
-npm i @babel/core @babel/cli @babel/preset-env @babel/node nodemon @babel/plugin-transform-runtime -D
+npm i nodemon -D
 ```

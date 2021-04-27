@@ -1,67 +1,74 @@
-import firebase from "../database/db";
-import IngredientModel from "../models/ingredient.model";
+const firebase = require("../database/db");
+const IngredientModel = require("../models/ingredient.model");
 const firestore = firebase.firestore();
 
-export const createIngredient = async (req, res) => {
+const createIngredient = async (req, res) => {
   try {
     const data = req.body;
     await firestore.collection("ingredients").doc().set(data);
-    res.send("Record created successfully");
+    return res.send("Record created successfully");
   } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(400).send(error.message);
   }
 };
 
-export const getIngredients = async (req, res) => {
+const getIngredients = async (req, res) => {
   try {
     const ingredients = await firestore.collection("ingredients").get();
     if (ingredients.empty) {
-      res.status(404).send("no records");
+      return res.status(404).send("no records");
     } else {
       let ingredientList = [];
       ingredients.forEach((doc) => {
         const ingredient = new IngredientModel({ ...doc.data(), id: doc.id });
         ingredientList.push(ingredient);
       });
-      res.json(ingredientList);
+      return res.status(201).json(ingredientList);
     }
   } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(400).send(error.message);
   }
 };
 
-export const getIngredientById = async (req, res) => {
+const getIngredientById = async (req, res) => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
     const ingredient = await firestore.collection("ingredients").doc(id).get();
     if (!ingredient.exists) {
-      res.status(404).send("not found");
+      return res.status(404).json({error: "not found"});
     } else {
-      res.send(ingredient.data());
+      return res.status(201).json(ingredient.data())
     }
-    res.send("Record created successfully");
   } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(400).send(error.message);
   }
 };
 
-export const patchIngredientById = async (req, res) => {
+const patchIngredientById = async (req, res) => {
   try {
     const id = req.params.id;
     const data = req.body;
     await firestore.collection("ingredients").doc(id).update(data);
-    res.send("Record updated successfully");
+    return res.send("Record updated successfully");
   } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(400).send(error.message);
   }
 };
 
-export const deleteIngredientById = async (req, res) => {
+const deleteIngredientById = async (req, res) => {
   try {
     const id = req.params.id;
     await firestore.collection("ingredients").doc(id).delete();
-    res.send("Record deleted successfully");
+    return res.send("Record deleted successfully");
   } catch (error) {
-    res.status(400).send(error.message);
+    return res.status(400).send(error.message);
   }
+};
+
+module.exports = {
+  createIngredient,
+  getIngredients,
+  getIngredientById,
+  patchIngredientById,
+  deleteIngredientById,
 };

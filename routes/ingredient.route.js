@@ -15,6 +15,5 @@ router.get("/ingredient/:id", getIngredientById);
 router.patch("/ingredient/:id", patchIngredientById);
 router.delete("/ingredient/:id", deleteIngredientById);
 
-module.exports = {
-  router
-}
+module.exports = router;
+
