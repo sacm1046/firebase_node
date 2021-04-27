@@ -1,11 +1,11 @@
-class Ingredient {
-    constructor(id, name, type, cost, image){
+class Recepy {
+    constructor(id, name, type, image, ingredients){
         this.id = id;
         this.name = name;
         this.type = type;
-        this.cost = cost;
         this.image = image;
+        this.ingredients = ingredients;
     }
 }
 
-module.exports = Ingredient;
+module.exports = Recepy;

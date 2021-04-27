@@ -8,6 +8,7 @@ const config = require('./config');
 
 //Routes imports
 const ingredientRoutes = require('./routes/ingredient.route');
+const recepyRoutes = require('./routes/recepy.route');
 
 const app = express();
 
@@ -23,8 +24,9 @@ app.use(cors());
 
 const prefix = '/api';
 
-app.get('/', (req, res) => res.json({message: 'Hola'}))
 app.use(prefix, ingredientRoutes);
+app.use(prefix, recepyRoutes);
+app.get('/', (req, res) => res.render('index', { author: 'Codeme' }))
 
 const server = http.createServer(app);
 

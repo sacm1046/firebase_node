@@ -52,9 +52,15 @@ npm i jsonwebtoken
 npm i bcryptjs
 ```
 
+##### Instalación de Ejs, permite trabajar con templates de html de fácil y rápida ejecución.
+[https://ejs.co/]
+```bash
+npm i ejs
+```
+
 ##### Todos los Módulos principales
 ```bash
-npm i express firebase morgan dotenv helmet compression cors jsonwebtoken bcryptjs
+npm i express firebase morgan dotenv helmet compression cors jsonwebtoken bcryptjs ejs
 ```
 
 ## Instalación de Módulos de Desarrollo
