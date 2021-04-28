@@ -12,9 +12,6 @@ const recepyRoutes = require('./routes/recepy.route');
 
 const app = express();
 
-//configurations for render templates
-app.set('view engine', 'ejs');
-
 //middlewares
 app.use(morgan('dev'));
 app.use(express.json());
@@ -26,7 +23,7 @@ const prefix = '/api';
 
 app.use(prefix, ingredientRoutes);
 app.use(prefix, recepyRoutes);
-app.get('/', (req, res) => res.render('index', { author: 'Codeme' }))
+app.get('/', (req, res) => res.json({ author: 'Codeme' }))
 
 const server = http.createServer(app);
 
