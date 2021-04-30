@@ -1,12 +1,18 @@
-const firebase = require("../database/db");
-const IngredientModel = require("../models/ingredient.model");
-const firestore = firebase.firestore();
+const { getAll, getOne, create, update, destroy } = require("../helpers/firestoreOrm");
+const processIngredientsRecepy = require("../helpers/processIngredientsRecepy");
+const hasData = require("../helpers/hasData");
 
 const createRecepy = async (req, res) => {
   try {
-    const data = req.body;
-    await firestore.collection("recepies").doc().set(data);
-    return res.send("Record created successfully");
+    const { name, type, image, ingredients } = req.body;
+    const data = {
+      name,
+      type,
+      image,
+      ingredients,
+    };
+    await create("recepies", data);
+    return res.json({ success: "Record created successfully" });
   } catch (error) {
     return res.status(400).send(error.message);
   }
@@ -14,54 +20,56 @@ const createRecepy = async (req, res) => {
 
 const getRecepies = async (req, res) => {
   try {
-    const ingredients = await firestore.collection("recepies").get();
-    if (ingredients.empty) {
-      return res.status(404).send("no records");
+    const recepies = await getAll("recepies");
+    const ingredients = await getAll("ingredients");
+    if (!hasData(recepies)) {
+      return res.status(404).json({ error: "no records" });
     } else {
-      let ingredientList = [];
-      ingredients.forEach((doc) => {
-        const ingredient = new IngredientModel({ ...doc.data(), id: doc.id });
-        ingredientList.push(ingredient);
+      const processedRecepies = recepies.map((recepy) => {
+        return processIngredientsRecepy(recepy, ingredients);
       });
-      return res.status(201).json(ingredientList);
+
+      return res.status(201).json(processedRecepies);
     }
   } catch (error) {
-    return res.status(400).send(error.message);
+    return res.status(400).json({ error: error.message });
   }
 };
 
 const getRecepyById = async (req, res) => {
   try {
     const { id } = req.params;
-    const ingredient = await firestore.collection("recepies").doc(id).get();
-    if (!ingredient.exists) {
-      return res.status(404).json({error: "not found"});
+    const recepy = await getOne("recepies", id);
+    const ingredients = await getAll("ingredients");
+    if (!hasData(recepy)) {
+      return res.status(404).json({ error: "not found" });
     } else {
-      return res.status(201).json(ingredient.data())
+      return res
+        .status(201)
+        .json(processIngredientsRecepy(recepy, ingredients));
     }
   } catch (error) {
-    return res.status(400).send(error.message);
+    return res.status(400).json({ error: error.message });
   }
 };
 
 const patchRecepyById = async (req, res) => {
   try {
-    const id = req.params.id;
-    const data = req.body;
-    await firestore.collection("recepies").doc(id).update(data);
-    return res.send("Record updated successfully");
+    const { params, body } = req;
+    await update("recepies", params.id, body);
+    return res.json({ success: "Record updated successfully" });
   } catch (error) {
-    return res.status(400).send(error.message);
+    return res.status(400).json({ error: error.message });
   }
 };
 
 const deleteRecepyById = async (req, res) => {
   try {
-    const id = req.params.id;
-    await firestore.collection("recepies").doc(id).delete();
-    return res.send("Record deleted successfully");
+    const { id } = req.params;
+    await destroy("recepies", id);
+    return res.json({ success: "Record deleted successfully" });
   } catch (error) {
-    return res.status(400).send(error.message);
+    return res.status(400).json({ error: error.message });
   }
 };
 
