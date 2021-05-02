@@ -10,6 +10,7 @@ const processIngredientsRecepy = (recepy, ingredients) => {
     const ingredientIds = recepy.ingredients.map(
         (ingredient) => ingredient.id
       );
+
       let recepyCost = 0;
 
       const filteredIngredients = ingredients.filter(({ id }) =>

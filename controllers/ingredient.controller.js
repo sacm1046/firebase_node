@@ -1,4 +1,10 @@
-const { getAll, getOne, destroy, update, create } = require("../helpers/firestoreOrm");
+const {
+  getAll,
+  getOne,
+  destroy,
+  update,
+  create,
+} = require("../helpers/firestoreOrm");
 const hasData = require("../helpers/hasData");
 
 const createIngredient = async (req, res) => {
@@ -8,8 +14,8 @@ const createIngredient = async (req, res) => {
       image,
       cost,
       name,
-      type, 
-    }
+      type,
+    };
     await create("ingredients", data);
     return res.json({ success: "Record created successfully" });
   } catch (error) {
@@ -20,11 +26,7 @@ const createIngredient = async (req, res) => {
 const getIngredients = async (req, res) => {
   try {
     const ingredients = await getAll("ingredients");
-    if (!hasData(ingredients)) {
-      return res.status(404).json({ error: "no records" });
-    } else {
-      return res.status(201).json(ingredients);
-    }
+    return res.status(201).json(ingredients);
   } catch (error) {
     return res.status(400).send(error.message);
   }

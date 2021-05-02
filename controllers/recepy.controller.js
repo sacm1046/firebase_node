@@ -1,4 +1,10 @@
-const { getAll, getOne, create, update, destroy } = require("../helpers/firestoreOrm");
+const {
+  getAll,
+  getOne,
+  create,
+  update,
+  destroy,
+} = require("../helpers/firestoreOrm");
 const processIngredientsRecepy = require("../helpers/processIngredientsRecepy");
 const hasData = require("../helpers/hasData");
 
@@ -22,15 +28,12 @@ const getRecepies = async (req, res) => {
   try {
     const recepies = await getAll("recepies");
     const ingredients = await getAll("ingredients");
-    if (!hasData(recepies)) {
-      return res.status(404).json({ error: "no records" });
-    } else {
-      const processedRecepies = recepies.map((recepy) => {
-        return processIngredientsRecepy(recepy, ingredients);
-      });
 
-      return res.status(201).json(processedRecepies);
-    }
+    const processedRecepies = recepies.map((recepy) => {
+      return processIngredientsRecepy(recepy, ingredients);
+    });
+
+    return res.status(201).json(processedRecepies);
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
