@@ -1,3 +1,4 @@
+const { getAll } = require('./firestoreOrm');
 const hasData = require('./hasData');
 
 /**
@@ -5,13 +6,13 @@ const hasData = require('./hasData');
  * message in errors
  * @method
  * @param key - English key to translate
-*/
+ */
 function translateKeys(key) {
   return {
-    'cost': 'Costo',
-    'name': 'Nombre',
-    'type': 'Unidad',
-    'ingredients': 'Ingredientes'
+    cost: 'Costo',
+    name: 'Nombre',
+    type: 'Unidad',
+    ingredients: 'Ingredientes',
   }[key];
 }
 
@@ -23,7 +24,7 @@ function translateKeys(key) {
  * @param body - request body from client
  * @param res - response from client
  * @param exceptions - array of exceptions to evaluate on validations
-*/
+ */
 function validations(body, res, exceptions) {
   const bodyKeys = Object.keys(body);
   let data = {};
@@ -38,6 +39,26 @@ function validations(body, res, exceptions) {
   return data;
 }
 
+/**
+ * Method to validate ingredients included on this recepy,
+ * comparing with all ingredients on database, just for create
+ * and update recepies
+ * @method
+ * @param newIngredients - list of ingredients on this recepy
+ * @param res - response from client
+ */
+async function createUpdateValidation(newIngredients, res) {
+  const ingredients = await getAll('ingredients');
+  let condition = true;
+  newIngredients
+    .map(({ id }) => id)
+    .forEach((newId) => {
+      condition = ingredients.map(({ id }) => id).includes(newId);
+    });
+  return condition;
+}
+
 module.exports = {
   validations,
+  createUpdateValidation,
 };

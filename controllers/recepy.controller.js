@@ -7,11 +7,16 @@ const {
 } = require('../helpers/firestoreOrm');
 const processIngredientsRecepy = require('../helpers/processIngredientsRecepy');
 const hasData = require('../helpers/hasData');
-const { validations } = require('../helpers/validations');
+const {
+  validations,
+  createUpdateValidation,
+} = require('../helpers/validations');
 
 const createRecepy = async (req, res) => {
   try {
     const data = validations(req.body, res, ['image']);
+    const validation = await createUpdateValidation(data.ingredients, res);
+    if (!validation) return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
     await create('recepies', data);
     return res.status(201).json({ success: 'Creación exitosa' });
   } catch (error) {
@@ -23,10 +28,14 @@ const getRecepies = async (req, res) => {
   try {
     const recepies = await getAll('recepies');
     const ingredients = await getAll('ingredients');
-    const processedRecepies = recepies.map((recepy) => {
-      return processIngredientsRecepy(recepy, ingredients);
-    });
-    return res.status(200).json(processedRecepies);
+    if (!hasData(recepies)) {
+      return res.status(404).json({ error: 'No hay recetas' });
+    } else {
+      const processedRecepies = recepies.map((recepy) => {
+        return processIngredientsRecepy(recepy, ingredients);
+      });
+      return res.status(200).json(processedRecepies);
+    }
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -53,6 +62,8 @@ const patchRecepyById = async (req, res) => {
   try {
     const { params, body } = req;
     const data = validations(body, res, ['image']);
+    const validation = await createUpdateValidation(data.ingredients, res);
+    if (!validation) return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
     await update('recepies', params.id, data);
     return res.status(200).json({ success: 'Actualización exitosa' });
   } catch (error) {
