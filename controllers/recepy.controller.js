@@ -13,9 +13,9 @@ const createRecepy = async (req, res) => {
   try {
     const data = validations(req.body, res, ['image']);
     await create('recepies', data);
-    return res.json({ success: 'Creación exitosa' });
+    return res.status(201).json({ success: 'Creación exitosa' });
   } catch (error) {
-    return res.status(400).send(error.message);
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -26,7 +26,7 @@ const getRecepies = async (req, res) => {
     const processedRecepies = recepies.map((recepy) => {
       return processIngredientsRecepy(recepy, ingredients);
     });
-    return res.status(201).json(processedRecepies);
+    return res.status(200).json(processedRecepies);
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -41,7 +41,7 @@ const getRecepyById = async (req, res) => {
       return res.status(404).json({ error: 'No encontrado' });
     } else {
       return res
-        .status(201)
+        .status(200)
         .json(processIngredientsRecepy(recepy, ingredients));
     }
   } catch (error) {
@@ -54,7 +54,7 @@ const patchRecepyById = async (req, res) => {
     const { params, body } = req;
     const data = validations(body, res, ['image']);
     await update('recepies', params.id, data);
-    return res.json({ success: 'Actualización exitosa' });
+    return res.status(200).json({ success: 'Actualización exitosa' });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -64,7 +64,7 @@ const deleteRecepyById = async (req, res) => {
   try {
     const { id } = req.params;
     await destroy('recepies', id);
-    return res.json({ success: 'Borrado exitoso' });
+    return res.status(200).json({ success: 'Borrado exitoso' });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
