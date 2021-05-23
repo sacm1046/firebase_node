@@ -4,15 +4,15 @@ const {
   destroy,
   update,
   create,
-} = require("../helpers/firestoreOrm");
-const hasData = require("../helpers/hasData");
-const { validations } = require("../helpers/validations");
+} = require('../helpers/firestoreOrm');
+const hasData = require('../helpers/hasData');
+const { validations } = require('../helpers/validations');
 
 const createIngredient = async (req, res) => {
   try {
     const data = validations(req.body, res, ['image']);
-    await create("ingredients", data);
-    return res.status(201).json({ success: "Creación exitosa" });
+    await create('ingredients', data);
+    return res.status(201).json({ success: 'Creación exitosa' });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -20,7 +20,7 @@ const createIngredient = async (req, res) => {
 
 const getIngredients = async (req, res) => {
   try {
-    const ingredients = await getAll("ingredients");
+    const ingredients = await getAll('ingredients');
     return res.status(200).json(ingredients);
   } catch (error) {
     return res.status(400).json({ error: error.message });
@@ -30,9 +30,9 @@ const getIngredients = async (req, res) => {
 const getIngredientById = async (req, res) => {
   try {
     const { id } = req.params;
-    const ingredient = await getOne("ingredients", id);
+    const ingredient = await getOne('ingredients', id);
     if (!hasData(ingredient)) {
-      return res.status(404).json({ error: "No encontrado" });
+      return res.status(404).json({ error: 'No encontrado' });
     } else {
       return res.status(200).json(ingredient);
     }
@@ -45,8 +45,8 @@ const patchIngredientById = async (req, res) => {
   try {
     const { params, body } = req;
     const data = validations(body, res, ['image']);
-    await update("ingredients", params.id, data);
-    return res.status(200).json({ success: "Actualización exitosa" });
+    await update('ingredients', params.id, data);
+    return res.status(200).json({ success: 'Actualización exitosa' });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -55,8 +55,8 @@ const patchIngredientById = async (req, res) => {
 const deleteIngredientById = async (req, res) => {
   try {
     const { id } = req.params;
-    await destroy("ingredients", id);
-    return res.status(200).json({ success: "Borrado exitoso" });
+    await destroy('ingredients', id);
+    return res.status(200).json({ success: 'Borrado exitoso' });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }

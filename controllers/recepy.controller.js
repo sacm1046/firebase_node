@@ -76,13 +76,17 @@ const patchRecepyById = async (req, res) => {
   try {
     const { params, body } = req;
     const { name, image, type, ingredients, preparation } = body;
-    const data = validations({
-      name,
-      image,
-      type,
-      ingredients,
-      preparation,
-    }, res, ['image']);
+    const data = validations(
+      {
+        name,
+        image,
+        type,
+        ingredients,
+        preparation,
+      },
+      res,
+      ['image']
+    );
     const validation = await createUpdateValidation(data.ingredients, res);
     if (!validation)
       return res

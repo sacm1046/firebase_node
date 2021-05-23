@@ -14,7 +14,7 @@ function translateKeys(key) {
     name: 'Nombre',
     type: 'Unidad',
     ingredients: 'Ingredientes',
-    preparation: 'Preparación'
+    preparation: 'Preparación',
   }[key];
 }
 
