@@ -9,10 +9,12 @@ const hasData = require('./hasData');
  */
 function translateKeys(key) {
   return {
+    id: 'Id',
     cost: 'Costo',
     name: 'Nombre',
     type: 'Unidad',
     ingredients: 'Ingredientes',
+    preparation: 'Preparación'
   }[key];
 }
 

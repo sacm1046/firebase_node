@@ -14,9 +14,23 @@ const {
 
 const createRecepy = async (req, res) => {
   try {
-    const data = validations(req.body, res, ['image']);
+    const { name, image, type, ingredients, preparation } = req.body;
+    const data = validations(
+      {
+        name,
+        image,
+        type,
+        ingredients,
+        preparation,
+      },
+      res,
+      ['image']
+    );
     const validation = await createUpdateValidation(data.ingredients, res);
-    if (!validation) return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
+    if (!validation)
+      return res
+        .status(400)
+        .json({ error: 'Ingredientes incluidos no existen' });
     await create('recepies', data);
     return res.status(201).json({ success: 'Creación exitosa' });
   } catch (error) {
@@ -29,7 +43,7 @@ const getRecepies = async (req, res) => {
     const recepies = await getAll('recepies');
     const ingredients = await getAll('ingredients');
     if (!hasData(recepies)) {
-      return res.status(404).json({ error: 'No hay recetas' });
+      return res.status(200).json([]);
     } else {
       const processedRecepies = recepies.map((recepy) => {
         return processIngredientsRecepy(recepy, ingredients);
@@ -61,9 +75,19 @@ const getRecepyById = async (req, res) => {
 const patchRecepyById = async (req, res) => {
   try {
     const { params, body } = req;
-    const data = validations(body, res, ['image']);
+    const { name, image, type, ingredients, preparation } = body;
+    const data = validations({
+      name,
+      image,
+      type,
+      ingredients,
+      preparation,
+    }, res, ['image']);
     const validation = await createUpdateValidation(data.ingredients, res);
-    if (!validation) return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
+    if (!validation)
+      return res
+        .status(400)
+        .json({ error: 'Ingredientes incluidos no existen' });
     await update('recepies', params.id, data);
     return res.status(200).json({ success: 'Actualización exitosa' });
   } catch (error) {
