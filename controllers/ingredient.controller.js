@@ -55,8 +55,15 @@ const patchIngredientById = async (req, res) => {
 const deleteIngredientById = async (req, res) => {
   try {
     const { id } = req.params;
-    await destroy('ingredients', id);
-    return res.status(200).json({ success: 'Borrado exitoso' });
+    const recepies = await getAll('recepies');
+    if (hasData(recepies)) {
+      if(recepies.some(recepy=> recepy.ingredients.map(ingredient=>ingredient.id).includes(id))){
+        res.status(502).json({ error: 'El ingrediente no puede ser borrado debido a que esta relacionado a una receta existe' })
+      }else {
+        await destroy('ingredients', id);
+        return res.status(200).json({ success: 'Borrado exitoso' });
+      }
+    }
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
