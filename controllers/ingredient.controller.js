@@ -81,16 +81,23 @@ const deleteIngredientById = async (req, res) => {
 };
 
 const getImage = async (req, res) => {
-  var gsReference = storage.refFromURL('gs://recetario-2369f.appspot.com/test.png')
-  gsReference.getDownloadURL().then(function(url) {
-    return res.status(200).json(url);
-  }).catch(function(error) {
-    return res.status(400).json({ error });
-  });
+  const gsReference = storage.refFromURL(
+    'gs://recetario-2369f.appspot.com/test.png'
+  );
+  gsReference
+    .getDownloadURL()
+    .then(function (url) {
+      return res.status(200).json(url);
+    })
+    .catch(function (error) {
+      return res.status(400).json({ error });
+    });
 };
 
 const postImage = async ({ file }, res) => {
-  if (file.size >= 100) return res.status(400).json({ error: 'Archivo supera 100kb' });
+  console.log(file);
+  if (file.size >= 100)
+    return res.status(400).json({ error: 'Archivo supera 100kb' });
   if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg') {
     const fileRef = storage.ref(file.originalname);
     const bytes = new Uint8Array(file.buffer);
@@ -106,6 +113,16 @@ const postImage = async ({ file }, res) => {
   return res.status(400).json({ error: 'Formato de archivo no válido' });
 };
 
+const deleteImage = async ({ file }, res) => {
+  const gsReference = storage.refFromURL(
+    'gs://recetario-2369f.appspot.com/test.png'
+  );
+  gsReference
+    .delete()
+    .then(() => console.log('deleted'))
+    .catch((error) => console.log(error));
+};
+
 module.exports = {
   createIngredient,
   getIngredients,
@@ -114,4 +131,5 @@ module.exports = {
   deleteIngredientById,
   getImage,
   postImage,
+  deleteImage,
 };

@@ -7,6 +7,7 @@ const {
   deleteIngredientById,
   getImage,
   postImage,
+  deleteImage,
 } = require('../controllers/ingredient.controller');
 const multer = require('multer');
 
@@ -21,5 +22,7 @@ router.patch('/ingredient/:id', patchIngredientById);
 router.delete('/ingredient/:id', deleteIngredientById);
 router.get('/ingredient-image', getImage);
 router.post('/ingredient-image',upload.single('image'), postImage);
+router.delete('/ingredient-image', deleteImage);
+
 
 module.exports = router;

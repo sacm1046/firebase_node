@@ -1,6 +1,5 @@
-const { db, storage } = require('../database/db');
+const { db } = require('../database/db');
 const firestore = db.firestore();
-const ref = storage.ref();
 
 /**
  * Method to get all documents in a specific collection
@@ -67,6 +66,4 @@ module.exports = {
   create,
   update,
   destroy,
-  uploadFile,
-  getFile,
 };
