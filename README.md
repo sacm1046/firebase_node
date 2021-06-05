@@ -18,7 +18,7 @@ npm i express
 npm i dotenv
 ```
 * Crea un archivo ".env" en la carpeta raíz del proyecto
-##### Instalación de Firebase, para hacer consultas en el serivicio firestore de firebase
+##### Instalación de Firebase, para hacer consultas en el serivicio firestore, Storage, entre otros.
 ```bash
 npm i firebase
 ```
@@ -52,9 +52,14 @@ npm i jsonwebtoken
 npm i bcryptjs
 ```
 
+##### Instalación de Multer, permite manejar archivos con multiparts.
+```bash
+npm i multer
+```
+
 ##### Todos los Módulos principales
 ```bash
-npm i express firebase morgan dotenv helmet compression cors jsonwebtoken bcryptjs ejs
+npm i express firebase morgan dotenv helmet compression cors jsonwebtoken bcryptjs multer
 ```
 
 ## Instalación de Módulos de Desarrollo

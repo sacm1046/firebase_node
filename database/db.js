@@ -1,6 +1,11 @@
-const firebase = require('firebase');
+const firebase = require('firebase/app');
+require('firebase/firestore');
+require('firebase/storage');
 const config = require('../config');
 
 const db = firebase.initializeApp(config.firebaseConfig);
-
-module.exports = db;
+const storage = firebase.storage();
+module.exports = {
+  db,
+  storage,
+};
