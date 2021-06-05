@@ -94,19 +94,20 @@ const getImage = async (req, res) => {
     });
 };
 
-const postImage = async ({ file }, res) => {
-  console.log(file);
-  if (file.size >= 100)
+const postImage = async (req, res) => {
+  const { file, body } = req;
+  console.log(JSON.parse(body.data).name);
+  if (file.size >= 100000)
     return res.status(400).json({ error: 'Archivo supera 100kb' });
   if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg') {
-    const fileRef = storage.ref(file.originalname);
+    const fileRef = storage.ref(`${file.originalname}-${new Date()}`);
     const bytes = new Uint8Array(file.buffer);
     const metadata = {
       contentType: file.mimetype,
     };
     fileRef
       .put(bytes, metadata)
-      .then((snapshot) => console.log(snapshot))
+      .then((snapshot) => {})
       .catch((error) => console.log('error: ', error));
     return res.json({ success: 'Archivo Subido Exitósamente' });
   }
