@@ -1,6 +1,6 @@
 const { db } = require('../database/db');
 const firestore = db.firestore();
-
+const { storage } = require('../database/db');
 /**
  * Method to get all documents in a specific collection
  * @method
@@ -26,7 +26,7 @@ const getAll = async (collection) => {
  */
 const getOne = async (collection, id) => {
   let item = await firestore.collection(collection).doc(id).get();
-  return await item.data();
+  return item.data();
 };
 
 /**

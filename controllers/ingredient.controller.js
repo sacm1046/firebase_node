@@ -4,21 +4,67 @@ const {
   destroy,
   update,
   create,
-  uploadFile,
-  getFile,
 } = require('../helpers/firestoreOrm');
 const hasData = require('../helpers/hasData');
 const { validations } = require('../helpers/validations');
-
 const { storage } = require('../database/db');
 
+const fileTypes = {
+  png: 'image/png',
+  jpg: 'image/jpg',
+};
+
 const createIngredient = async (req, res) => {
-  try {
-    const data = validations(req.body, res, ['image']);
-    await create('ingredients', data);
-    return res.status(201).json({ success: 'Creación exitosa' });
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
+  const { file, body } = req;
+  const { png, jpg } = fileTypes;
+  const bodyParsed = JSON.parse(body.data);
+  const limit = 100000;
+  const types = [png, jpg];
+  if (hasData(file)) {
+    try {
+      const fileName = `ingredients/${new Date()}-${file.originalname}`;
+      if (file.size >= limit) {
+        return res.status(400).json({ error: `Archivo supera ${limit}kb` });
+      } else {
+        if (types.includes(file.mimetype)) {
+          const fileCreateRef = storage.ref(fileName);
+          const bytes = new Uint8Array(file.buffer);
+          const metadata = {
+            contentType: file.mimetype,
+          };
+          fileCreateRef
+            .put(bytes, metadata)
+            .then(() => {
+              const fileRef = storage.refFromURL(
+                `gs://recetario-2369f.appspot.com/${fileName}`
+              );
+              fileRef
+                .getDownloadURL()
+                .then(async (url) => {
+                  const data = validations(bodyParsed, res);
+                  await create('ingredients', { ...data, image: url });
+                  return res.status(201).json({ ...data, image: url });
+                })
+                .catch(function (error) {
+                  res.json({ error });
+                });
+            })
+            .catch((error) => console.log('error: ', error));
+        } else {
+          return res.status(400).json({ error: 'Formato de archivo no válido' });
+        }
+      }
+    } catch (e) {
+      return res.status(400).json({ error: 'Error en la creación del ingrediente' });
+    }
+  } else {
+    try {
+      const data = validations(bodyParsed, res);
+      await create('ingredients', { ...data, image: 'No Image' });
+      return res.status(201).json({ success: 'Ingrediente creado con éxito' });
+    } catch (e) {
+      return res.status(400).json({ error: 'Error en la creación del ingrediente' });
+    }
   }
 };
 
@@ -80,45 +126,11 @@ const deleteIngredientById = async (req, res) => {
   }
 };
 
-const getImage = async (req, res) => {
-  const gsReference = storage.refFromURL(
-    'gs://recetario-2369f.appspot.com/test.png'
+const deleteImage = async (req, res) => {
+  const fileRef = storage.refFromURL(
+    'gs://recetario-2369f.appspot.com/Sat Jun 05 2021 16:55:57 GMT-0400 (hora estándar de Chile)-test.png'
   );
-  gsReference
-    .getDownloadURL()
-    .then(function (url) {
-      return res.status(200).json(url);
-    })
-    .catch(function (error) {
-      return res.status(400).json({ error });
-    });
-};
-
-const postImage = async (req, res) => {
-  const { file, body } = req;
-  console.log(JSON.parse(body.data).name);
-  if (file.size >= 100000)
-    return res.status(400).json({ error: 'Archivo supera 100kb' });
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg') {
-    const fileRef = storage.ref(`${file.originalname}-${new Date()}`);
-    const bytes = new Uint8Array(file.buffer);
-    const metadata = {
-      contentType: file.mimetype,
-    };
-    fileRef
-      .put(bytes, metadata)
-      .then((snapshot) => {})
-      .catch((error) => console.log('error: ', error));
-    return res.json({ success: 'Archivo Subido Exitósamente' });
-  }
-  return res.status(400).json({ error: 'Formato de archivo no válido' });
-};
-
-const deleteImage = async ({ file }, res) => {
-  const gsReference = storage.refFromURL(
-    'gs://recetario-2369f.appspot.com/test.png'
-  );
-  gsReference
+  fileRef
     .delete()
     .then(() => console.log('deleted'))
     .catch((error) => console.log(error));
@@ -130,7 +142,5 @@ module.exports = {
   getIngredientById,
   patchIngredientById,
   deleteIngredientById,
-  getImage,
-  postImage,
   deleteImage,
 };

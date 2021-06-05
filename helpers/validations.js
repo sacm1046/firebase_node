@@ -27,7 +27,7 @@ function translateKeys(key) {
  * @param res - response from client
  * @param exceptions - array of exceptions to evaluate on validations
  */
-function validations(body, res, exceptions) {
+function validations(body, res, exceptions = []) {
   const bodyKeys = Object.keys(body);
   let data = {};
   bodyKeys.forEach((key) => {
