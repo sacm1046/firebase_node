@@ -8,6 +8,7 @@ const {
 const hasData = require('../helpers/hasData');
 const { validations } = require('../helpers/validations');
 const { storage } = require('../database/db');
+const { GS_URL } = process.env;
 
 const fileTypes = {
   png: 'image/png',
@@ -35,15 +36,19 @@ const createIngredient = async (req, res) => {
           fileCreateRef
             .put(bytes, metadata)
             .then(() => {
-              const fileRef = storage.refFromURL(
-                `gs://recetario-2369f.appspot.com/${fileName}`
-              );
+              const fileRef = storage.refFromURL(`${GS_URL}/${fileName}`);
               fileRef
                 .getDownloadURL()
                 .then(async (url) => {
                   const data = validations(bodyParsed, res);
-                  await create('ingredients', { ...data, image: url });
-                  return res.status(201).json({ ...data, image: url });
+                  await create('ingredients', {
+                    ...data,
+                    image: url,
+                    imageRef: `${GS_URL}/${fileName}`,
+                  });
+                  return res
+                    .status(201)
+                    .json({ success: 'Ingrediente creado exitósamente' });
                 })
                 .catch(function (error) {
                   res.json({ error });
@@ -51,19 +56,25 @@ const createIngredient = async (req, res) => {
             })
             .catch((error) => console.log('error: ', error));
         } else {
-          return res.status(400).json({ error: 'Formato de archivo no válido' });
+          return res
+            .status(400)
+            .json({ error: 'Formato de archivo no válido' });
         }
       }
     } catch (e) {
-      return res.status(400).json({ error: 'Error en la creación del ingrediente' });
+      return res
+        .status(400)
+        .json({ error: 'Error en la creación del ingrediente' });
     }
   } else {
     try {
       const data = validations(bodyParsed, res);
-      await create('ingredients', { ...data, image: 'No Image' });
+      await create('ingredients', { ...data, image: '' });
       return res.status(201).json({ success: 'Ingrediente creado con éxito' });
     } catch (e) {
-      return res.status(400).json({ error: 'Error en la creación del ingrediente' });
+      return res
+        .status(400)
+        .json({ error: 'Error en la creación del ingrediente' });
     }
   }
 };
@@ -92,48 +103,147 @@ const getIngredientById = async (req, res) => {
 };
 
 const patchIngredientById = async (req, res) => {
-  try {
-    const { params, body } = req;
-    const data = validations(body, res, ['image']);
-    await update('ingredients', params.id, data);
-    return res.status(200).json({ success: 'Actualización exitosa' });
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
+  const { params, body, file } = req;
+  console.log(req.params.id);
+  const { png, jpg } = fileTypes;
+  getOne('ingredients', params.id)
+    .then((ingredient) => {
+      const bodyParsed = JSON.parse(body.data);
+      const data = validations(bodyParsed, res);
+      if (hasData(ingredient)) {
+        const fileDeleteRef = storage.refFromURL(ingredient.imageRef);
+        fileDeleteRef
+          .delete()
+          .then(() => {
+            const limit = 100000;
+            const types = [png, jpg];
+            if (hasData(file)) {
+              const fileName = `ingredients/${new Date()}-${file.originalname}`;
+              if (file.size >= limit) {
+                return res
+                  .status(400)
+                  .json({ error: `Archivo supera ${limit}kb` });
+              } else {
+                if (types.includes(file.mimetype)) {
+                  const fileCreateRef = storage.ref(fileName);
+                  const bytes = new Uint8Array(file.buffer);
+                  const metadata = {
+                    contentType: file.mimetype,
+                  };
+                  fileCreateRef
+                    .put(bytes, metadata)
+                    .then(() => {
+                      const fileRef = storage.refFromURL(
+                        `${GS_URL}/${fileName}`
+                      );
+                      fileRef
+                        .getDownloadURL()
+                        .then((url) => {
+                          update('ingredients', params.id, {
+                            ...data,
+                            image: url,
+                            imageRef: `${GS_URL}/${fileName}`,
+                          })
+                            .then(() => {
+                              return res.status(201).json({
+                                success: 'Ingrediente actualizado exitósamente',
+                              });
+                            })
+                            .catch((error) => {
+                              res.status(400).json({
+                                error: 'Error en la edición del ingrediente',
+                              });
+                            });
+                        })
+                        .catch((error) => {
+                          res.status(400).json({
+                            error: 'Error en la edición del ingrediente',
+                          });
+                        });
+                    })
+                    .catch((error) => console.log('error: ', error));
+                } else {
+                  return res
+                    .status(400)
+                    .json({ error: 'Formato de archivo no válido' });
+                }
+              }
+            } else {
+              update('ingredients', params.id, { ...data, image: '' })
+                .then(() => {
+                  return res.status(201).json({
+                    success: 'Ingrediente actualizado exitósamente',
+                  });
+                })
+                .catch((error) => {
+                  res.status(400).json({
+                    error: 'Error en la edición del ingrediente',
+                  });
+                });
+            }
+          })
+          .catch((error) => console.log(error));
+      } else {
+        return res.status(404).json({ error: 'Ingrediente no encontrado' });
+      }
+    })
+    .catch(() => {
+      return res.status(404).json('not found');
+    });
 };
+
+/*
+
+      */
 
 const deleteIngredientById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const recepies = await getAll('recepies');
-    if (hasData(recepies)) {
-      if (
-        recepies.some((recepy) =>
-          recepy.ingredients.map((ingredient) => ingredient.id).includes(id)
-        )
-      ) {
-        res.status(502).json({
-          error:
-            'El ingrediente no puede ser borrado debido a que esta relacionado a una receta existe',
-        });
+  const { id } = req.params;
+  getAll('recepies')
+    .then((recepies) => {
+      if (hasData(recepies)) {
+        if (
+          recepies.some((recepy) =>
+            recepy.ingredients.map((ingredient) => ingredient.id).includes(id)
+          )
+        ) {
+          res.status(502).json({
+            error:
+              'El ingrediente no puede ser borrado debido a que esta relacionado a una receta existe',
+          });
+        }
       } else {
-        await destroy('ingredients', id);
-        return res.status(200).json({ success: 'Borrado exitoso' });
+        getOne('ingredients', id)
+          .then((ingredient) => {
+            if (hasData(ingredient)) {
+              const fileRef = storage.refFromURL(ingredient.imageRef);
+              fileRef
+                .delete()
+                .then(() => {
+                  destroy('ingredients', id)
+                    .then(() => {
+                      return res
+                        .status(200)
+                        .json({ success: 'Borrado exitoso' });
+                    })
+                    .catch(() => {
+                      return res.status(400).json({ error: error.message });
+                    });
+                })
+                .catch((error) => console.log(error));
+            } else {
+              return res
+                .status(404)
+                .json({ error: 'Ingrediente no encontrado' });
+            }
+          })
+          .catch((error) => {
+            return res.status(400).json({ error: error.message });
+          });
       }
-    }
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-};
-
-const deleteImage = async (req, res) => {
-  const fileRef = storage.refFromURL(
-    'gs://recetario-2369f.appspot.com/Sat Jun 05 2021 16:55:57 GMT-0400 (hora estándar de Chile)-test.png'
-  );
-  fileRef
-    .delete()
-    .then(() => console.log('deleted'))
-    .catch((error) => console.log(error));
+    })
+    .catch(() => {
+      return res.status(400).json({ error: error.message });
+    });
 };
 
 module.exports = {
@@ -142,5 +252,4 @@ module.exports = {
   getIngredientById,
   patchIngredientById,
   deleteIngredientById,
-  deleteImage,
 };
