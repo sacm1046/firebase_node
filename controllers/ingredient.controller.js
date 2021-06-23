@@ -92,10 +92,11 @@ const patchIngredientById = async (req, res) => {
     }
     /* Sin archivo archivo y archivo antiguo existente */
     else if (hasData(ingredient.imageRef) && !hasData(file)) {
+      await deleteFile(ingredient.imageRef);
       await update('ingredients', params.id, {
         ...data,
-        image: url,
-        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+        image: "",
+        imageRef: "",
       });
       return res.status(201).json({
         success: 'Ingrediente actualizado exitósamente',
