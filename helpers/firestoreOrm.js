@@ -125,6 +125,17 @@ const createFile = async (file, folder) => {
   }
 };
 
+const updateFile = async (oldFileRef, newFile, newFolder) => {
+  try{
+    await deleteFile(oldFileRef);
+    const [filename] = await createFile(newFile, newFolder);
+    const [url] = await getFileUrl(filename);
+    return [{url, filename}, null];
+  } catch (error) {
+    return [null, error];
+  }
+};
+
 const deleteFile = async (fileRef) => {
   try {
     const fileDeleteRef = storage.refFromURL(fileRef);
@@ -142,6 +153,7 @@ module.exports = {
   update,
   destroy,
   createFile,
+  updateFile,
   deleteFile,
   getFileUrl,
 };

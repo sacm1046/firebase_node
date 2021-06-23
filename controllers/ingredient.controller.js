@@ -4,9 +4,10 @@ const {
   destroy,
   update,
   create,
-  deleteFile,
-  createFile,
   getFileUrl,
+  createFile,
+  updateFile,
+  deleteFile,
 } = require('../helpers/firestoreOrm');
 const hasData = require('../helpers/hasData');
 const { validations } = require('../helpers/validations');
@@ -21,7 +22,6 @@ const createIngredient = async (req, res) => {
     try {
       const [filename] = await createFile(file, 'ingredients');
       const [url] = await getFileUrl(filename);
-      console.log(url);
       await create('ingredients', {
         ...data,
         image: url,
@@ -73,39 +73,55 @@ const patchIngredientById = async (req, res) => {
   const bodyParsed = JSON.parse(body.data);
   const data = validations(bodyParsed, res, ['id']);
   try {
-    const ingredient = await getOne('ingredients', params.id);
-    if (hasData(ingredient)) {
-      if (hasData(ingredient.imageRef)) {
-        const [error, success] = await deleteFile(ingredient.imageRef);
-        if (success) {
-          const [error2, filename] = await createFile(file, 'ingredients/');
-          if (filename) {
-            const [error3, url] = await getFileUrl(filename);
-            const updated = await update('ingredients', params.id, {
-              ...data,
-              image: url,
-              imageRef: `gs://${STORAGE_BUCKET}/${fileName}`,
-            });
-            if (updated) {
-              return res.status(201).json({
-                success: 'Ingrediente actualizado exitósamente',
-              });
-            } else {
-              return res.status(201).json({
-                error: error3,
-              });
-            }
-          } else {
-            return res.status(400).json({
-              error: error2,
-            });
-          }
-        } else {
-          return res.status(400).json({
-            error,
-          });
-        }
-      }
+    const [ingredient] = await getOne('ingredients', params.id);
+    /* Nuevo archivo y archivo antiguo existente */
+    if (hasData(ingredient.imageRef) && hasData(file)) {
+      const [{ url, filename }] = await updateFile(
+        ingredient.imageRef,
+        file,
+        'ingredients'
+      );
+      await update('ingredients', params.id, {
+        ...data,
+        image: url,
+        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+      });
+      return res.status(201).json({
+        success: 'Ingrediente actualizado exitósamente',
+      });
+    }
+    /* Sin archivo archivo y archivo antiguo existente */
+    else if (hasData(ingredient.imageRef) && !hasData(file)) {
+      await update('ingredients', params.id, {
+        ...data,
+        image: url,
+        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+      });
+      return res.status(201).json({
+        success: 'Ingrediente actualizado exitósamente',
+      });
+    }
+    /* Nuevo archivo y archivo antiguo no existente */
+    else if (!hasData(ingredient.imageRef) && hasData(file)) {
+      const [filename] = await createFile(file, 'ingredients');
+      const [url] = await getFileUrl(filename);
+      await update('ingredients', params.id, {
+        ...data,
+        image: url,
+        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+      });
+      return res.status(201).json({
+        success: 'Ingrediente actualizado exitósamente',
+      });
+    } else {
+      await update('ingredients', params.id, {
+        ...data,
+        image: "",
+        imageRef: "",
+      });
+      return res.status(201).json({
+        success: 'Ingrediente actualizado exitósamente',
+      });
     }
   } catch (error) {
     return res.status(400).json({
