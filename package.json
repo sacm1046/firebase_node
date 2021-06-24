@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:api": "NODE_ENV=production node -r dotenv/config index.js",
-    "dev:api": "nodemon -r dotenv/config index.js --exec"
+    "start": "NODE_ENV=production node -r dotenv/config index.js",
+    "dev": "nodemon -r dotenv/config index.js --exec"
   },
   "keywords": [],
   "author": "",
