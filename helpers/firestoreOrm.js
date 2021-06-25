@@ -89,6 +89,11 @@ const fileTypes = {
   jpg: 'image/jpg',
 };
 
+/**
+ * Method to get the ulr of a file on firebase storage
+ * @method
+ * @param filename - filename reference to get url
+ */
 const getFileUrl = async (filename) => {
   try {
     const fileRef = storage.refFromURL(`gs://${STORAGE_BUCKET}/${filename}`);
@@ -99,6 +104,12 @@ const getFileUrl = async (filename) => {
   }
 };
 
+/**
+ * Method to create a file on firebase storage
+ * @method
+ * @param file - file bob to save
+ * @param folder - folder route in firebase storage for the file
+ */
 const createFile = async (file, folder) => {
   const { png, jpg } = fileTypes;
   const limit = 100000;
@@ -125,6 +136,13 @@ const createFile = async (file, folder) => {
   }
 };
 
+/**
+ * Method to update a file on firebase storage
+ * @method
+ * @param oldFileRef - file reference to delete
+ * @param newFile - new bob file to create
+ * @param newFolder - folder route in firebase storage for the new file
+ */
 const updateFile = async (oldFileRef, newFile, newFolder) => {
   try{
     await deleteFile(oldFileRef);
@@ -136,6 +154,11 @@ const updateFile = async (oldFileRef, newFile, newFolder) => {
   }
 };
 
+/**
+ * Method to delete a file on firebase storage
+ * @method
+ * @param fileRef - file reference to delete
+ */
 const deleteFile = async (fileRef) => {
   try {
     const fileDeleteRef = storage.refFromURL(fileRef);

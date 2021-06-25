@@ -40,8 +40,8 @@ const createRecepy = async (req, res) => {
 
 const getRecepies = async (req, res) => {
   try {
-    const recepies = await getAll('recepies');
-    const ingredients = await getAll('ingredients');
+    const [recepies] = await getAll('recepies');
+    const [ingredients] = await getAll('ingredients');
     if (!hasData(recepies)) {
       return res.status(200).json([]);
     } else {
@@ -58,10 +58,10 @@ const getRecepies = async (req, res) => {
 const getRecepyById = async (req, res) => {
   try {
     const { id } = req.params;
-    const recepy = await getOne('recepies', id);
-    const ingredients = await getAll('ingredients');
+    const [recepy] = await getOne('recepies', id);
+    const [ingredients] = await getAll('ingredients');
     if (!hasData(recepy)) {
-      return res.status(404).json({ error: 'No encontrado' });
+      return res.status(404).json({ error: 'Receta no encontrada' });
     } else {
       return res
         .status(200)
