@@ -4,6 +4,10 @@ const {
   create,
   update,
   destroy,
+  getFileUrl,
+  createFile,
+  updateFile,
+  deleteFile,
 } = require('../helpers/firestoreOrm');
 const processIngredientsRecepy = require('../helpers/processIngredientsRecepy');
 const hasData = require('../helpers/hasData');
@@ -11,30 +15,40 @@ const {
   validations,
   createUpdateValidation,
 } = require('../helpers/validations');
+const { STORAGE_BUCKET } = process.env;
 
 const createRecepy = async (req, res) => {
-  try {
-    const { name, image, type, ingredients, preparation } = req.body;
-    const data = validations(
-      {
-        name,
-        image,
-        type,
-        ingredients,
-        preparation,
-      },
-      res,
-      ['image']
-    );
-    const validation = await createUpdateValidation(data.ingredients, res);
-    if (!validation)
+  const { file, body } = req;
+  const bodyParsed = JSON.parse(body.data);
+  const data = validations(bodyParsed, res);
+  const validation = await createUpdateValidation(data.ingredients, res);
+  if (!validation) {
+    return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
+  }
+  if (hasData(file)) {
+    try {
+      const [filename] = await createFile(file, 'recepies');
+      const [url] = await getFileUrl(filename);
+      await create('recepies', {
+        ...data,
+        image: url,
+        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+      });
+      return res.status(201).json({ success: 'Receta creada con éxito' });
+    } catch (e) {
       return res
         .status(400)
-        .json({ error: 'Ingredientes incluidos no existen' });
-    await create('recepies', data);
-    return res.status(201).json({ success: 'Creación exitosa' });
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
+        .json({ error: 'Error en la creación de la receta' });
+    }
+  } else {
+    try {
+      await create('recepies', { ...data, image: '', imageRef: '' });
+      return res.status(201).json({ success: 'Receta creada con éxito' });
+    } catch (e) {
+      return res
+        .status(400)
+        .json({ error: 'Error en la creación de la receta' });
+    }
   }
 };
 

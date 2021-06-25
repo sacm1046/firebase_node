@@ -50,7 +50,7 @@ function validations(body, res, exceptions = []) {
  * @param res - response from client
  */
 async function createUpdateValidation(newIngredients, res) {
-  const ingredients = await getAll('ingredients');
+  const [ingredients] = await getAll('ingredients');
   let condition = true;
   newIngredients
     .map(({ id }) => id)
