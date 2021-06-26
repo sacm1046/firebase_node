@@ -19,36 +19,53 @@ const { STORAGE_BUCKET } = process.env;
 
 const createRecepy = async (req, res) => {
   const { file, body } = req;
-  const bodyParsed = JSON.parse(body.data);
-  const data = validations(bodyParsed, res);
-  const validation = await createUpdateValidation(data.ingredients, res);
-  if (!validation) {
-    return res.status(400).json({ error: 'Ingredientes incluidos no existen' });
+  const data = JSON.parse(body.data);
+  /* const data = validations(bodyParsed, res, ['ingredients']); */
+  /* Validations */
+  if (!hasData(data.name)) {
+    return res
+      .status(503)
+      .json({ error: 'Nombre de receta es obligatorio' });
   }
-  if (hasData(file)) {
-    try {
-      const [filename] = await createFile(file, 'recepies');
-      const [url] = await getFileUrl(filename);
-      await create('recepies', {
-        ...data,
-        image: url,
-        imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
-      });
-      return res.status(201).json({ success: 'Receta creada con éxito' });
-    } catch (e) {
+  if (!hasData(data.ingredients)) {
+    return res
+      .status(503)
+      .json({ error: 'Receta debe contener al menos 1 ingrediente' });
+  }
+  try {
+    const validation = await createUpdateValidation(data.ingredients);
+    if (!validation) {
       return res
         .status(400)
-        .json({ error: 'Error en la creación de la receta' });
+        .json({ error: 'Ingredientes incluidos no existen' });
     }
-  } else {
-    try {
-      await create('recepies', { ...data, image: '', imageRef: '' });
-      return res.status(201).json({ success: 'Receta creada con éxito' });
-    } catch (e) {
-      return res
-        .status(400)
-        .json({ error: 'Error en la creación de la receta' });
+    if (hasData(file)) {
+      try {
+        const [filename] = await createFile(file, 'recepies');
+        const [url] = await getFileUrl(filename);
+        await create('recepies', {
+          ...data,
+          image: url,
+          imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+        });
+        return res.status(201).json({ success: 'Receta creada con éxito' });
+      } catch (e) {
+        return res
+          .status(400)
+          .json({ error: 'Error en la creación de la receta' });
+      }
+    } else {
+      try {
+        await create('recepies', { ...data, image: '', imageRef: '' });
+        return res.status(201).json({ success: 'Receta creada con éxito' });
+      } catch (e) {
+        return res
+          .status(400)
+          .json({ error: 'Error en la creación de la receta' });
+      }
     }
+  } catch (error) {
+    return res.status(400).json({ error });
   }
 };
 
@@ -87,48 +104,83 @@ const getRecepyById = async (req, res) => {
 };
 
 const patchRecepyById = async (req, res) => {
+  const { params, body, file } = req;
+  const bodyParsed = JSON.parse(body.data);
+  const data = validations(bodyParsed, res, ['id', 'image', 'imageRef']);
   try {
-    const { params, body } = req;
-    const { name, image, type, ingredients, preparation } = body;
-    const data = validations(
-      {
-        name,
-        image,
-        type,
-        ingredients,
-        preparation,
-      },
-      res,
-      ['image']
-    );
     const validation = await createUpdateValidation(data.ingredients, res);
-    if (!validation)
+    if (!validation) {
       return res
         .status(400)
         .json({ error: 'Ingredientes incluidos no existen' });
-    await update('recepies', params.id, data);
-    return res.status(200).json({ success: 'Actualización exitosa' });
+    } else {
+      const [recepy] = await getOne('recepies', params.id);
+      /* Nuevo archivo y archivo antiguo existente */
+      if (hasData(recepy.imageRef) && hasData(file)) {
+        const [{ url, filename }] = await updateFile(
+          recepy.imageRef,
+          file,
+          'recepies'
+        );
+        await update('recepies', params.id, {
+          ...data,
+          image: url,
+          imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+        });
+        return res.status(201).json({
+          success: 'Receta actualizada exitósamente',
+        });
+      } else if (hasData(recepy.imageRef) && !hasData(file)) {
+        /* Sin archivo archivo y archivo antiguo existente */
+        await update('recepies', params.id, {
+          ...data,
+          image: recepy.image,
+          imageRef: recepy.imageRef,
+        });
+        return res.status(201).json({
+          success: 'Receta actualizada exitósamente',
+        });
+      } else if (!hasData(recepy.imageRef) && hasData(file)) {
+        /* Nuevo archivo y archivo antiguo no existente */
+        const [filename] = await createFile(file, 'recepies');
+        const [url] = await getFileUrl(filename);
+        await update('recepies', params.id, {
+          ...data,
+          image: url,
+          imageRef: `gs://${STORAGE_BUCKET}/${filename}`,
+        });
+        return res.status(201).json({
+          success: 'Receta actualizada exitósamente',
+        });
+        /* Sin archivo archivo y archivo antiguo no existente */
+      } else {
+        await update('recepies', params.id, {
+          ...data,
+          image: '',
+          imageRef: '',
+        });
+        return res.status(201).json({
+          success: 'Receta actualizada exitósamente',
+        });
+      }
+    }
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
 };
 
 const deleteRecepyById = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     const [recepy] = await getOne('recepies', id);
     if (hasData(recepy)) {
       if (hasData(recepy.imageRef)) {
         await deleteFile(recepy.imageRef);
         await destroy('recepies', id);
-          return res
-            .status(200)
-            .json({ success: 'Receta borrada con éxito' });
+        return res.status(200).json({ success: 'Receta borrada con éxito' });
       } else {
         await destroy('recepies', id);
-        return res
-          .status(200)
-          .json({ success: 'Receta borrada con éxito' });
+        return res.status(200).json({ success: 'Receta borrada con éxito' });
       }
     } else {
       return res.status(404).json({ error: 'Receta no encontrada' });

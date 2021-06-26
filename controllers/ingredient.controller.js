@@ -134,7 +134,8 @@ const patchIngredientById = async (req, res) => {
 const deleteIngredientById = async (req, res) => {
   const { id } = req.params;
   const [recepies] = await getAll('recepies');
-  const [error, checked] = checkIngredientsRecepy(recepies, id);
+  const [checked, error] = checkIngredientsRecepy(recepies, id);
+  if (hasData(error)) return res.status(503).json({ error });
   if (checked) {
     const [ingredient] = await getOne('ingredients', id);
     if (hasData(ingredient)) {
@@ -153,8 +154,6 @@ const deleteIngredientById = async (req, res) => {
     } else {
       return res.status(404).json({ error: 'Ingrediente no encontrado' });
     }
-  } else {
-    return res.status(400).json({ error });
   }
 };
 

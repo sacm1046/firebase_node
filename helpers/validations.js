@@ -49,7 +49,7 @@ function validations(body, res, exceptions = []) {
  * @param newIngredients - list of ingredients on this recepy
  * @param res - response from client
  */
-async function createUpdateValidation(newIngredients, res) {
+async function createUpdateValidation(newIngredients) {
   const [ingredients] = await getAll('ingredients');
   let condition = true;
   newIngredients

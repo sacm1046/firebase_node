@@ -8,11 +8,11 @@ function checkIngredientsRecepy (recepies, ingredientId) {
       )
     ) {
       return [
-        'El ingrediente no puede ser borrado debido a que esta relacionado a una receta existe',
         null,
+        'El ingrediente no puede ser borrado debido a que esta relacionado a una receta existe',
       ];
     }
-  } return [null, true];
+  } return ['success', null];
 };
 
 module.exports = checkIngredientsRecepy;
