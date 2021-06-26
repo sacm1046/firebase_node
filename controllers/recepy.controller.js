@@ -116,8 +116,23 @@ const patchRecepyById = async (req, res) => {
 const deleteRecepyById = async (req, res) => {
   try {
     const { id } = req.params;
-    await destroy('recepies', id);
-    return res.status(200).json({ success: 'Borrado exitoso' });
+    const [recepy] = await getOne('recepies', id);
+    if (hasData(recepy)) {
+      if (hasData(recepy.imageRef)) {
+        await deleteFile(recepy.imageRef);
+        await destroy('recepies', id);
+          return res
+            .status(200)
+            .json({ success: 'Receta borrada con éxito' });
+      } else {
+        await destroy('recepies', id);
+        return res
+          .status(200)
+          .json({ success: 'Receta borrada con éxito' });
+      }
+    } else {
+      return res.status(404).json({ error: 'Receta no encontrada' });
+    }
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }

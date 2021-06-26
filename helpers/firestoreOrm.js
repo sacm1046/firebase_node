@@ -112,11 +112,11 @@ const getFileUrl = async (filename) => {
  */
 const createFile = async (file, folder) => {
   const { png, jpg } = fileTypes;
-  const limit = 100000;
+  const limit = 5000000;
   const types = [png, jpg];
   const fileName = `${folder}/${new Date()}-${file.originalname}`;
   if (file.size >= limit) {
-    return [`Archivo supera ${limit}kb`, null];
+    return [null, `Archivo supera ${limit}kb`];
   } else {
     if (types.includes(file.mimetype)) {
       try {
@@ -131,7 +131,7 @@ const createFile = async (file, folder) => {
         return [null, error];
       }
     } else {
-      ['Formato de archivo no válido', null];
+      [null, 'Formato de archivo no válido'];
     }
   }
 };
