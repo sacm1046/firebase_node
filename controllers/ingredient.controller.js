@@ -20,7 +20,8 @@ const createIngredient = async (req, res) => {
   const data = validations(bodyParsed, res);
   if (hasData(file)) {
     try {
-      const [filename] = await createFile(file, 'ingredients');
+      const [filename, error] = await createFile(file, 'ingredients');
+      if (error) return res.status(400).json({ error });
       const [url] = await getFileUrl(filename);
       await create('ingredients', {
         ...data,
@@ -76,11 +77,12 @@ const patchIngredientById = async (req, res) => {
     const [ingredient] = await getOne('ingredients', params.id);
     /* Nuevo archivo y archivo antiguo existente */
     if (hasData(ingredient.imageRef) && hasData(file)) {
-      const [{ url, filename }] = await updateFile(
+      const [{ url, filename }, error] = await updateFile(
         ingredient.imageRef,
         file,
         'ingredients'
       );
+      if (error) return res.status(400).json({ error });
       await update('ingredients', params.id, {
         ...data,
         image: url,
@@ -89,9 +91,8 @@ const patchIngredientById = async (req, res) => {
       return res.status(201).json({
         success: 'Ingrediente actualizado exitósamente',
       });
-    }
+    } else if (hasData(ingredient.imageRef) && !hasData(file)) {
     /* Sin archivo archivo y archivo antiguo existente */
-    else if (hasData(ingredient.imageRef) && !hasData(file)) {
       await update('ingredients', params.id, {
         ...data,
         image: ingredient.image,
@@ -100,10 +101,10 @@ const patchIngredientById = async (req, res) => {
       return res.status(201).json({
         success: 'Ingrediente actualizado exitósamente',
       });
-    }
+    } else if (!hasData(ingredient.imageRef) && hasData(file)) {
     /* Nuevo archivo y archivo antiguo no existente */
-    else if (!hasData(ingredient.imageRef) && hasData(file)) {
-      const [filename] = await createFile(file, 'ingredients');
+      const [filename, error] = await createFile(file, 'ingredients');
+      if (error) return res.status(400).json({ error });
       const [url] = await getFileUrl(filename);
       await update('ingredients', params.id, {
         ...data,
@@ -113,12 +114,12 @@ const patchIngredientById = async (req, res) => {
       return res.status(201).json({
         success: 'Ingrediente actualizado exitósamente',
       });
-    /* Sin archivo archivo y archivo antiguo no existente */
+      /* Sin archivo archivo y archivo antiguo no existente */
     } else {
       await update('ingredients', params.id, {
         ...data,
-        image: "",
-        imageRef: "",
+        image: '',
+        imageRef: '',
       });
       return res.status(201).json({
         success: 'Ingrediente actualizado exitósamente',
@@ -142,9 +143,9 @@ const deleteIngredientById = async (req, res) => {
       if (hasData(ingredient.imageRef)) {
         await deleteFile(ingredient.imageRef);
         await destroy('ingredients', id);
-          return res
-            .status(200)
-            .json({ success: 'Ingrediente borrado con éxito' });
+        return res
+          .status(200)
+          .json({ success: 'Ingrediente borrado con éxito' });
       } else {
         await destroy('ingredients', id);
         return res

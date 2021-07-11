@@ -20,7 +20,6 @@ const { STORAGE_BUCKET } = process.env;
 const createRecepy = async (req, res) => {
   const { file, body } = req;
   const data = JSON.parse(body.data);
-  /* const data = validations(bodyParsed, res, ['ingredients']); */
   /* Validations */
   if (!hasData(data.name)) {
     return res
@@ -41,7 +40,8 @@ const createRecepy = async (req, res) => {
     }
     if (hasData(file)) {
       try {
-        const [filename] = await createFile(file, 'recepies');
+        const [filename, error] = await createFile(file, 'recepies');
+        if (error) return res.status(400).json({ error });
         const [url] = await getFileUrl(filename);
         await create('recepies', {
           ...data,
@@ -117,11 +117,12 @@ const patchRecepyById = async (req, res) => {
       const [recepy] = await getOne('recepies', params.id);
       /* Nuevo archivo y archivo antiguo existente */
       if (hasData(recepy.imageRef) && hasData(file)) {
-        const [{ url, filename }] = await updateFile(
+        const [{ url, filename }, error] = await updateFile(
           recepy.imageRef,
           file,
           'recepies'
         );
+        if (error) return res.status(400).json({ error });
         await update('recepies', params.id, {
           ...data,
           image: url,
@@ -142,7 +143,8 @@ const patchRecepyById = async (req, res) => {
         });
       } else if (!hasData(recepy.imageRef) && hasData(file)) {
         /* Nuevo archivo y archivo antiguo no existente */
-        const [filename] = await createFile(file, 'recepies');
+        const [filename, error] = await createFile(file, 'recepies');
+        if (error) return res.status(400).json({ error });
         const [url] = await getFileUrl(filename);
         await update('recepies', params.id, {
           ...data,

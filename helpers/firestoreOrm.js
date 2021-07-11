@@ -19,7 +19,7 @@ const getAll = async (collection) => {
     });
     return [list, null];
   } catch (error) {
-    return [null,error];
+    return [null, error];
   }
 };
 
@@ -87,6 +87,7 @@ const destroy = async (collection, id) => {
 const fileTypes = {
   png: 'image/png',
   jpg: 'image/jpg',
+  jpeg: 'image/jpeg',
 };
 
 /**
@@ -111,27 +112,25 @@ const getFileUrl = async (filename) => {
  * @param folder - folder route in firebase storage for the file
  */
 const createFile = async (file, folder) => {
-  const { png, jpg } = fileTypes;
-  const limit = 5000000;
-  const types = [png, jpg];
+  const { png, jpg, jpeg } = fileTypes;
+  const limit = 50000000;
+  const types = [png, jpg, jpeg];
   const fileName = `${folder}/${new Date()}-${file.originalname}`;
   if (file.size >= limit) {
     return [null, `Archivo supera ${limit}kb`];
+  } else if (!types.includes(file.mimetype)) {
+    return [null, 'Solo se permiten archivos png, jpg y jpeg'];
   } else {
-    if (types.includes(file.mimetype)) {
-      try {
-        const fileCreateRef = storage.ref(fileName);
-        const bytes = new Uint8Array(file.buffer);
-        const metadata = {
-          contentType: file.mimetype,
-        };
-        await fileCreateRef.put(bytes, metadata);
-        return [fileName, null];
-      } catch (error) {
-        return [null, error];
-      }
-    } else {
-      [null, 'Formato de archivo no válido'];
+    try {
+      const fileCreateRef = storage.ref(fileName);
+      const bytes = new Uint8Array(file.buffer);
+      const metadata = {
+        contentType: file.mimetype,
+      };
+      await fileCreateRef.put(bytes, metadata);
+      return [fileName, null];
+    } catch (error) {
+      return [null, error];
     }
   }
 };
@@ -144,13 +143,14 @@ const createFile = async (file, folder) => {
  * @param newFolder - folder route in firebase storage for the new file
  */
 const updateFile = async (oldFileRef, newFile, newFolder) => {
-  try{
+  try {
     await deleteFile(oldFileRef);
-    const [filename] = await createFile(newFile, newFolder);
+    const [filename, error] = await createFile(newFile, newFolder);
+    if (error) return [null, error];
     const [url] = await getFileUrl(filename);
-    return [{url, filename}, null];
-  } catch (error) {
-    return [null, error];
+    return [{ url, filename }, null];
+  } catch (e) {
+    return [null, e];
   }
 };
 
